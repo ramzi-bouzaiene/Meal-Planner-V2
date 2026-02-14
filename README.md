@@ -93,10 +93,18 @@ http://localhost:5000/api-docs
 ## Protected Routes
 Some routes require authentication using JWT tokens. The frontend handles this with a protected route component.
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature-name`)
-3. Commit changes (`git commit -m 'Added new feature'`)
-4. Push to the branch (`git push origin feature-name`)
-5. Open a pull request
+## Screenshots
+
+<img width="671" height="415" alt="image" src="https://github.com/user-attachments/assets/fac4b64d-c0ca-4f17-85c4-e2c9bd5c2571" />
+<img width="545" height="411" alt="image" src="https://github.com/user-attachments/assets/dcc8ec3a-7ddf-4b5a-b804-a57d8b8ecfca" />
+<img width="935" height="384" alt="image" src="https://github.com/user-attachments/assets/475478fb-951e-4454-80dd-1111b2a37edf" />
+<img width="807" height="365" alt="image" src="https://github.com/user-attachments/assets/f33e5781-7ae5-4eee-9647-b85c3bfba60f" />
+<img width="313" height="328" alt="image" src="https://github.com/user-attachments/assets/b21b6be5-95af-4fdb-99c1-05c343ef3bd1" />
+<img width="1622" height="1086" alt="image" src="https://github.com/user-attachments/assets/251a2e37-37b5-4e19-851b-78528185ef70" />
+
+
+
+
+
+
 

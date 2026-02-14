@@ -9,8 +9,17 @@ import {
   Typography,
   message,
   Popconfirm,
+  Card,
+  Empty,
 } from 'antd'
 import type { TableColumnsType } from 'antd'
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  CalendarFilled,
+  LinkOutlined,
+  CloseOutlined
+} from '@ant-design/icons'
 import { DayEnum } from '../enums/DaysOfWeek'
 import { MealType } from '../enums/MealType'
 import { MealPlan, RecipeInMealPlan } from '../types/mealPlanTypes'
@@ -22,7 +31,7 @@ import {
 import { DataTable } from '../Components/DataTable/DataTable'
 import Layout from '../Components/Layout/Layout'
 
-const { Title } = Typography
+const { Title, Paragraph } = Typography
 const { Option } = Select
 
 interface FlattenedRecipe {
@@ -53,21 +62,81 @@ export const MealPlans = () => {
   ])
 
   const columns: TableColumnsType<FlattenedRecipe> = [
-    { title: 'Week', dataIndex: 'week', key: 'week' },
-    { title: 'Day', dataIndex: 'day', key: 'day' },
-    { title: 'Meal Type', dataIndex: 'mealType', key: 'mealType' },
-    { title: 'Recipe Title', dataIndex: 'title', key: 'title' },
+    {
+      title: 'Week',
+      dataIndex: 'week',
+      key: 'week',
+      render: (text: string) => (
+        <span style={{
+          background: '#e0e7ff',
+          padding: '4px 12px',
+          borderRadius: '20px',
+          color: '#4338ca',
+          fontWeight: 500,
+          fontSize: '13px'
+        }}>
+          {text}
+        </span>
+      )
+    },
+    {
+      title: 'Day',
+      dataIndex: 'day',
+      key: 'day',
+      render: (text: string) => (
+        <span style={{ fontWeight: 500, color: '#1e293b' }}>{text}</span>
+      )
+    },
+    {
+      title: 'Meal',
+      dataIndex: 'mealType',
+      key: 'mealType',
+      render: (text: string) => {
+        const colors: Record<string, { bg: string; text: string }> = {
+          breakfast: { bg: '#fef3c7', text: '#92400e' },
+          lunch: { bg: '#d1fae5', text: '#065f46' },
+          dinner: { bg: '#e0e7ff', text: '#3730a3' },
+          snack: { bg: '#fce7f3', text: '#9d174d' },
+        }
+        const style = colors[text.toLowerCase()] || { bg: '#f1f5f9', text: '#475569' }
+        return (
+          <span style={{
+            background: style.bg,
+            color: style.text,
+            padding: '4px 12px',
+            borderRadius: '20px',
+            fontWeight: 500,
+            fontSize: '13px'
+          }}>
+            {text}
+          </span>
+        )
+      }
+    },
+    {
+      title: 'Recipe',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text: string) => (
+        <span style={{ fontWeight: 500, color: '#1e293b' }}>{text}</span>
+      )
+    },
     {
       title: 'Source',
       dataIndex: 'sourceUrl',
       key: 'sourceUrl',
       render: (url: string) =>
         url ? (
-          <a href={url} target="_blank" rel="noreferrer">
-            View
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: 4 }}
+          >
+            <LinkOutlined /> View
           </a>
         ) : (
-          '-'
+          <span style={{ color: '#94a3b8' }}>-</span>
         ),
     },
     {
@@ -76,11 +145,15 @@ export const MealPlans = () => {
       render: (_: unknown, record: FlattenedRecipe) => (
         <Popconfirm
           title="Delete this meal plan?"
+          description="This action cannot be undone."
           onConfirm={() => handleDelete(record.planId)}
-          okText="Yes"
-          cancelText="No"
+          okText="Delete"
+          cancelText="Cancel"
+          okButtonProps={{ danger: true }}
         >
-          <a style={{ color: 'red' }}>Delete</a>
+          <Button type="text" danger icon={<DeleteOutlined />}>
+            Delete
+          </Button>
         </Popconfirm>
       ),
     },
@@ -178,151 +251,199 @@ export const MealPlans = () => {
 
   return (
     <Layout>
-      <div style={{ padding: '24px' }}>
-        <Title level={3}>My Meal Plans</Title>
+      <div className="page-container">
+        {/* Page Header */}
+        <div className="page-header">
+          <div>
+            <Title level={2} className="page-title">
+              <CalendarFilled style={{ color: '#6366f1' }} />
+              Meal Plans
+            </Title>
+            <Paragraph className="page-description">
+              Organize your weekly meals and stay on track
+            </Paragraph>
+          </div>
+        </div>
 
-        <DataTable<FlattenedRecipe> columns={columns} data={flattenedData} />
+        {/* Current Meal Plans Table */}
+        <div className="table-container" style={{ marginBottom: '32px' }}>
+          <div className="table-header">
+            <h3 className="table-title">📅 Your Meal Plans</h3>
+          </div>
+          {flattenedData.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                <div>
+                  <p style={{ fontSize: 16, color: '#475569', marginBottom: 4 }}>No meal plans yet</p>
+                  <p style={{ color: '#94a3b8' }}>Create your first meal plan below!</p>
+                </div>
+              }
+            />
+          ) : (
+            <DataTable<FlattenedRecipe> columns={columns} data={flattenedData} />
+          )}
+        </div>
 
-        <Title level={3} style={{ marginTop: '32px' }}>
-          Add New Meal Plan
-        </Title>
-
-        <Form
-          form={form}
-          onFinish={handleSubmit}
-          initialValues={{
-            week: '',
+        {/* Add New Meal Plan Form */}
+        <Card
+          style={{
+            borderRadius: '16px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}
-          layout="vertical"
         >
-          <Form.Item
-            label="Week"
-            name="week"
-            rules={[{ required: true, message: 'Week is required' }]}
+          <Title level={4} style={{ marginBottom: '24px', color: '#1e293b' }}>
+            <PlusOutlined style={{ marginRight: 8, color: '#10b981' }} />
+            Create New Meal Plan
+          </Title>
+
+          <Form
+            form={form}
+            onFinish={handleSubmit}
+            initialValues={{
+              week: '',
+            }}
+            layout="vertical"
           >
-            <Input placeholder="e.g. 2026-W07" />
-          </Form.Item>
-
-          {recipes.map((_, index) => (
-            <div
-              key={index}
-              style={{
-                border: '1px solid #d9d9d9',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '16px',
-              }}
+            <Form.Item
+              label={<span style={{ fontWeight: 500 }}>Week</span>}
+              name="week"
+              rules={[{ required: true, message: 'Week is required' }]}
             >
-              <Title level={4}>Recipe {index + 1}</Title>
+              <Input
+                placeholder="e.g. 2026-W07"
+                style={{ maxWidth: 300 }}
+              />
+            </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Recipe ID"
-                    name={['recipes', index, 'recipeId']}
-                    rules={[
-                      { required: true, message: 'Recipe ID is required' },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Day"
-                    name={['recipes', index, 'day']}
-                    rules={[{ required: true, message: 'Day is required' }]}
-                  >
-                    <Select placeholder="Select Day">
-                      {Object.values(DayEnum).map((day) => (
-                        <Option key={day} value={day}>
-                          {day}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+            {recipes.map((_, index) => (
+              <div
+                key={index}
+                className="recipe-card"
+              >
+                <div className="recipe-card-header">
+                  <span className="recipe-card-number">
+                    🍽️ Recipe {index + 1}
+                  </span>
+                  {recipes.length > 1 && (
+                    <Button
+                      type="text"
+                      danger
+                      icon={<CloseOutlined />}
+                      onClick={() => handleRemoveRecipe(index)}
+                      className="remove-recipe-btn"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Meal Type"
-                    name={['recipes', index, 'mealType']}
-                    rules={[
-                      { required: true, message: 'Meal Type is required' },
-                    ]}
-                  >
-                    <Select placeholder="Select Meal Type">
-                      {Object.values(MealType).map((type) => (
-                        <Option key={type} value={type}>
-                          {type}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
+                <Row gutter={16}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Recipe ID"
+                      name={['recipes', index, 'recipeId']}
+                      rules={[
+                        { required: true, message: 'Recipe ID is required' },
+                      ]}
+                    >
+                      <Input placeholder="Enter recipe ID" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Day"
+                      name={['recipes', index, 'day']}
+                      rules={[{ required: true, message: 'Day is required' }]}
+                    >
+                      <Select placeholder="Select day of the week">
+                        {Object.values(DayEnum).map((day) => (
+                          <Option key={day} value={day}>
+                            {day}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Recipe Title"
-                    name={['recipes', index, 'recipeDetails', 'title']}
-                    rules={[
-                      { required: true, message: 'Recipe Title is required' },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="Recipe Image URL"
-                    name={['recipes', index, 'recipeDetails', 'image']}
-                    rules={[{ type: 'url', message: 'Invalid image URL' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
+                <Row gutter={16}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Meal Type"
+                      name={['recipes', index, 'mealType']}
+                      rules={[
+                        { required: true, message: 'Meal Type is required' },
+                      ]}
+                    >
+                      <Select placeholder="Select meal type">
+                        {Object.values(MealType).map((type) => (
+                          <Option key={type} value={type}>
+                            {type}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Recipe Title"
+                      name={['recipes', index, 'recipeDetails', 'title']}
+                      rules={[
+                        { required: true, message: 'Recipe Title is required' },
+                      ]}
+                    >
+                      <Input placeholder="Enter recipe name" />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    label="Recipe Source URL"
-                    name={['recipes', index, 'recipeDetails', 'sourceUrl']}
-                    rules={[{ type: 'url', message: 'Invalid source URL' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
+                <Row gutter={16}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Image URL"
+                      name={['recipes', index, 'recipeDetails', 'image']}
+                      rules={[{ type: 'url', message: 'Invalid image URL' }]}
+                    >
+                      <Input placeholder="https://example.com/image.jpg" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      label="Source URL"
+                      name={['recipes', index, 'recipeDetails', 'sourceUrl']}
+                      rules={[{ type: 'url', message: 'Invalid source URL' }]}
+                    >
+                      <Input placeholder="https://example.com/recipe" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </div>
+            ))}
 
-              {recipes.length > 1 && (
-                <Button
-                  type="dashed"
-                  danger
-                  onClick={() => handleRemoveRecipe(index)}
-                >
-                  Remove Recipe
-                </Button>
-              )}
-            </div>
-          ))}
+            <Form.Item>
+              <Button
+                type="dashed"
+                onClick={handleAddRecipe}
+                icon={<PlusOutlined />}
+                style={{ marginRight: 12 }}
+              >
+                Add Another Recipe
+              </Button>
+            </Form.Item>
 
-          <Form.Item>
-            <Button type="dashed" onClick={handleAddRecipe}>
-              + Add Another Recipe
-            </Button>
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit Meal Plan
-            </Button>
-          </Form.Item>
-        </Form>
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                className="add-button"
+              >
+                Create Meal Plan
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
       </div>
     </Layout>
   )
